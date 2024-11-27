@@ -75,9 +75,7 @@ GO
 -- Перенос Game при помощи clustered index
 
 ALTER TABLE Game
-    DROP CONSTRAINT PK_Game;
-ALTER TABLE Game
-    DROP CONSTRAINT AK_GameName_ReleaseDate;
+    DROP CONSTRAINT PK_Game, AK_GameName_ReleaseDate;
 GO
 
 CREATE CLUSTERED INDEX IX_Game_GameID
