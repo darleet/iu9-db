@@ -50,7 +50,7 @@ CREATE TABLE Game (
     GameID INT IDENTITY(1, 1) PRIMARY KEY NOT NULL,
     GameName NVARCHAR(255) NOT NULL,
     ReleaseDate DATE NOT NULL,
-    Description NVARCHAR(1023),
+    Description NVARCHAR(511),
     Price DECIMAL(9, 2) NOT NULL,
     DeveloperID INT NOT NULL,
     CONSTRAINT AK_GameName_ReleaseDate UNIQUE (GameName, ReleaseDate),
@@ -107,10 +107,18 @@ CREATE INDEX IX_Game_Description
     INCLUDE (GameName, ReleaseDate);
 GO
 
+SELECT Description, GameName, ReleaseDate
+    FROM Game
+    WHERE Description LIKE '%Mario%';
+GO
+
 CREATE VIEW DeveloperGameIndexedView WITH SCHEMABINDING AS
     SELECT D.DeveloperName, G.GameName
     FROM dbo.Developer AS D
     JOIN dbo.Game AS G ON D.DeveloperID = G.DeveloperID;
 GO
 CREATE UNIQUE CLUSTERED INDEX IX_DeveloperGame ON DeveloperGameIndexedView (DeveloperName, GameName);
+GO
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_DeveloperGameName ON DeveloperGameIndexedView (GameName);
 GO
