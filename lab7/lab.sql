@@ -109,7 +109,7 @@ GO
 
 SELECT Description, GameName, ReleaseDate
     FROM Game
-    WHERE Description LIKE '%Mario%';
+    WHERE Description LIKE 'Super Mario%';
 GO
 
 CREATE VIEW DeveloperGameIndexedView WITH SCHEMABINDING AS
