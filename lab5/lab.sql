@@ -69,7 +69,7 @@ CREATE TABLE Game (
     CONSTRAINT AK_GameName_ReleaseDate UNIQUE (GameName, ReleaseDate),
     CONSTRAINT PK_Game PRIMARY KEY CLUSTERED (GameID),
     FOREIGN KEY (DeveloperID) REFERENCES Developer(DeveloperID) ON DELETE CASCADE,
-)
+);
 GO
 
 -- Перенос Game при помощи clustered index
