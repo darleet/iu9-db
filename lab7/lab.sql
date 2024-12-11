@@ -75,6 +75,26 @@ CREATE VIEW GameView AS
     FROM Game;
 GO
 
+CREATE VIEW ExpensiveGameView AS
+    SELECT GameName, ReleaseDate, Description, Price, DeveloperID
+    FROM Game
+    WHERE Price > 100
+    WITH CHECK OPTION;
+GO
+
+INSERT INTO ExpensiveGameView
+    (GameName, ReleaseDate, Description, Price, DeveloperID)
+VALUES
+    ('Mario Kart 8', '2014-11-18', 'Mario Kart 8 is an action-adventure game', 129.99, 1);
+GO
+
+-- нарушает CHECK OPTION
+-- INSERT INTO ExpensiveGameView
+--     (GameName, ReleaseDate, Description, Price, DeveloperID)
+-- VALUES
+--     ('Mario Kart 8', '2014-11-18', 'Mario Kart 8 is an action-adventure game', 59.99, 1);
+-- GO
+
 -- Для нескольких таблиц
 CREATE VIEW DeveloperGameView AS
     SELECT D.DeveloperName, G.GameName
