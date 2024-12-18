@@ -220,6 +220,7 @@ GO
 
 DROP TRIGGER InsertGame;
 DROP TRIGGER UpdateGame;
+DROP TRIGGER DeleteGame;
 
 CREATE TABLE NewGame (
     GameID INT IDENTITY(1, 1) PRIMARY KEY NOT NULL,
@@ -238,23 +239,69 @@ INSERT INTO NewGame
     (GameName, ReleaseDate, Description, Price, DeveloperID)
 VALUES
     ('Minesweeper', '2014-11-18', 'Minesweeper is an action-adventure game', 59.99, 1),
-    ('Super Mario 3D World', '2013-11-21', 'Super Mario 3D was remade!', 129.99, 2);
+    ('Super Smash Bros. Ultimate', '2013-11-21', 'Super Mario 3D was remade!', 129.99, 2);
+GO
+
+CREATE TRIGGER InsertGame
+    ON Game
+    FOR INSERT
+AS
+    BEGIN
+        PRINT 'Merge Game Insert';
+        SELECT * FROM inserted;
+    END;
+GO
+
+CREATE TRIGGER UpdateGame
+    ON Game
+    FOR UPDATE
+AS
+    BEGIN
+        PRINT 'Merge Game Update';
+        SELECT * FROM inserted;
+        SELECT * FROM deleted;
+    END;
+GO
+
+CREATE TRIGGER DeleteGame
+    ON Game
+    FOR DELETE
+AS
+    BEGIN
+        PRINT 'Merge Game Delete';
+        SELECT * FROM deleted;
+    END;
 GO
 
 CREATE TRIGGER InsertNewGame
-    ON Game
+    ON NewGame
     FOR INSERT
 AS
-    PRINT 'Insert Trigger Called';
-    SELECT * FROM inserted;
+    BEGIN
+        PRINT 'Merge New Game Insert';
+        SELECT * FROM inserted;
+    END;
 GO
 
 CREATE TRIGGER UpdateNewGame
-    ON Game
-    FOR INSERT
+    ON NewGame
+    FOR UPDATE
 AS
-    PRINT 'Update Trigger Called';
-    SELECT * FROM inserted;
+    BEGIN
+        PRINT 'Merge New Game Update';
+        SELECT * FROM inserted;
+        SELECT * FROM deleted;
+    END;
+GO
+
+CREATE TRIGGER DeleteNewGame
+    ON NewGame
+    FOR DELETE
+AS
+    BEGIN
+        PRINT 'Merge New Game Delete';
+        SELECT * FROM deleted;
+    END;
 GO
 
 MERGE INTO Game AS G
