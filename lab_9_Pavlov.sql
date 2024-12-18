@@ -77,7 +77,7 @@ VALUES
     ('Super Mario Odyssey', '2017-10-27', 'Super Mario Odyssey is an action-adventure game', 299.99, 1),
     ('Super Mario 64', '1996-09-21', 'Super Mario 64 is an action-adventure game', 59.99, 1),
     ('Super Smash Bros. Ultimate', '2018-10-26', 'Super Smash Bros. Ultimate is an action-adventure game', 59.99, 2),
-    ('Super Mario 3D World', '2013-11-21', 'Super Mario 3D World is an action-adventure game', 59.99, 2);
+    ('Super Mario 3D World', '2013-11-21', 'Super Mario 3D World is an action-adventure game', 159.99, 2);
 GO
 
 -- UPDATE
@@ -170,11 +170,12 @@ AS
         PRINT 'Delete Trigger Called';
         THROW 50000, 'Nintendo cannot be deleted!', 1;
     END;
+    ELSE DELETE FROM Game WHERE GameName IN (SELECT GameName FROM deleted);
 GO
 
 DELETE FROM ExpensiveGameView
 WHERE
-    DeveloperName = 'Sega';
+    DeveloperName = 'Capcom';
 GO
 
 -- вызовет ошибку
