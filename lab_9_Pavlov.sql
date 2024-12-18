@@ -194,6 +194,11 @@ AS
         PRINT 'Update Trigger Called';
         THROW 50000, 'Release date cannot be changed', 1;
     END;
+    ELSE IF UPDATE(DeveloperName)
+    BEGIN
+        PRINT 'Update Trigger Called';
+        THROW 50000, 'Developer Name cannot be changed', 2;
+    END
 GO
 
 UPDATE ExpensiveGameView
