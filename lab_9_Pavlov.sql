@@ -136,12 +136,21 @@ AS
         PRINT 'Insert Trigger Called';
         THROW 50000, 'Price must be gte than 100', 1;
     END;
+    ELSE
+    BEGIN
+        INSERT INTO Game (GameName, ReleaseDate, Description, Price, DeveloperID)
+            SELECT I.GameName, I.ReleaseDate, I.Description, I.Price, D.DeveloperID
+            FROM inserted AS I
+                JOIN Developer AS D
+                    ON I.DeveloperName = D.DeveloperName
+    END;
 GO
 
 INSERT INTO ExpensiveGameView
     (GameName, ReleaseDate, Description, Price, DeveloperName)
 VALUES
-    ('Mario Kart 8', '2014-11-18', 'Mario Kart 8 is an action-adventure game', 129.99, 'asldklasd');
+    ('Mario Kart 8', '2014-11-18', 'Mario Kart 8 is an action-adventure game', 129.99, 'asldklasd'),
+    ('Mario Kart 8', '2014-11-18', 'Mario Kart 8 is an action-adventure game', 129.99, 'Nintendo');
 GO
 
 -- вызовет ошибку
