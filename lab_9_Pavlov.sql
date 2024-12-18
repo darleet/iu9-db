@@ -120,8 +120,10 @@ GO
 -- GO
 
 CREATE VIEW ExpensiveGameView AS
-    SELECT GameName, ReleaseDate, Description, Price, DeveloperID
-    FROM Game;
+    SELECT G.GameName, G.ReleaseDate, G.Description, G.Price, D.DeveloperName
+    FROM Game AS G
+    JOIN Developer D on G.DeveloperID = D.DeveloperID
+    WHERE Price > 100;
 GO
 
 -- INSERT
@@ -137,9 +139,9 @@ AS
 GO
 
 INSERT INTO ExpensiveGameView
-    (GameName, ReleaseDate, Description, Price, DeveloperID)
+    (GameName, ReleaseDate, Description, Price, DeveloperName)
 VALUES
-    ('Mario Kart 8', '2014-11-18', 'Mario Kart 8 is an action-adventure game', 129.99, 1);
+    ('Mario Kart 8', '2014-11-18', 'Mario Kart 8 is an action-adventure game', 129.99, 'asldklasd');
 GO
 
 -- вызовет ошибку
@@ -154,7 +156,7 @@ CREATE TRIGGER DeleteExpensiveGame
     ON ExpensiveGameView
     INSTEAD OF DELETE
 AS
-    IF 1 IN (SELECT DeveloperID FROM deleted)
+    IF 'Nintendo' IN (SELECT DeveloperName FROM deleted)
     BEGIN
         PRINT 'Delete Trigger Called';
         RAISERROR('Cannot delete games of Nintendo', 16, 1);
@@ -163,13 +165,13 @@ GO
 
 DELETE FROM ExpensiveGameView
 WHERE
-    DeveloperID = 2;
+    DeveloperName = 'Sega';
 GO
 
 -- вызовет ошибку
 -- DELETE FROM ExpensiveGameView
 -- WHERE
---     DeveloperID = 1;
+--     DeveloperName = 'Nintendo';
 -- GO
 
 -- UPDATE
@@ -186,7 +188,7 @@ GO
 
 UPDATE ExpensiveGameView
 SET
-    GameName = 'Minesweeper'
+    GameName = 'Mario Expensive Edition'
 WHERE
     GameName = 'Mario Kart 8';
 GO
@@ -198,3 +200,58 @@ GO
 -- WHERE
 --     GameName = 'Mario Kart 8';
 -- GO
+
+-- MERGE
+
+DROP TRIGGER InsertGame;
+DROP TRIGGER UpdateGame;
+
+CREATE TABLE NewGame (
+    GameID INT IDENTITY(1, 1) PRIMARY KEY NOT NULL,
+    GameName NVARCHAR(255) NOT NULL,
+    ReleaseDate DATE NOT NULL,
+    Description NVARCHAR(1023),
+    Price DECIMAL(9, 2) NOT NULL,
+    DeveloperID INT NOT NULL,
+    CONSTRAINT AK_NewGameName_ReleaseDate UNIQUE (GameName, ReleaseDate),
+    CONSTRAINT CHK_NewGame_Price CHECK (Price >= 0),
+    FOREIGN KEY (DeveloperID) REFERENCES Developer(DeveloperID) ON DELETE CASCADE,
+)
+GO
+
+INSERT INTO NewGame
+    (GameName, ReleaseDate, Description, Price, DeveloperID)
+VALUES
+    ('Minesweeper', '2014-11-18', 'Minesweeper is an action-adventure game', 59.99, 1),
+    ('Super Mario 3D World', '2013-11-21', 'Super Mario 3D was remade!', 129.99, 2);
+GO
+
+CREATE TRIGGER InsertNewGame
+    ON Game
+    FOR INSERT
+AS
+    PRINT 'Insert Trigger Called';
+    SELECT * FROM inserted;
+GO
+
+CREATE TRIGGER UpdateNewGame
+    ON Game
+    FOR INSERT
+AS
+    PRINT 'Update Trigger Called';
+    SELECT * FROM inserted;
+GO
+
+MERGE INTO Game AS G
+    USING NewGame AS N
+    ON G.GameName = N.GameName
+WHEN MATCHED THEN
+    UPDATE SET
+        G.Description = N.Description,
+        G.Price = N.Price
+WHEN NOT MATCHED THEN
+    INSERT
+        (GameName, ReleaseDate, Description, Price, DeveloperID)
+    VALUES
+        (N.GameName, N.ReleaseDate, N.Description, N.Price, N.DeveloperID);
+GO
