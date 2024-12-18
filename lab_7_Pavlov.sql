@@ -27,7 +27,6 @@ GO
 USE lab7_db;
 GO
 
--- с автоинкрементным индикатором
 CREATE TABLE Developer (
     DeveloperID INT IDENTITY(1, 1) PRIMARY KEY NOT NULL,
     DeveloperName NVARCHAR(63) NOT NULL,
