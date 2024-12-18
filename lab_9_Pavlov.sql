@@ -109,7 +109,7 @@ AS
     IF 'Nintendo' IN (SELECT DeveloperName FROM deleted)
     BEGIN
         PRINT 'Delete Trigger Called';
-        RAISERROR('Nintendo can not be deleted', 16, 1);
+        THROW 50000, 'Nintendo can not be deleted', 1;
     END;
 GO
 
@@ -134,7 +134,7 @@ AS
     IF EXISTS(SELECT * FROM inserted WHERE Price < 100)
     BEGIN
         PRINT 'Insert Trigger Called';
-        RAISERROR('Price must be gte than 100', 16, 1);
+        THROW 50000, 'Price must be gte than 100', 1;
     END;
 GO
 
@@ -159,7 +159,7 @@ AS
     IF 'Nintendo' IN (SELECT DeveloperName FROM deleted)
     BEGIN
         PRINT 'Delete Trigger Called';
-        RAISERROR('Cannot delete games of Nintendo', 16, 1);
+        THROW 50000, 'Nintendo cannot be deleted!', 1;
     END;
 GO
 
@@ -182,7 +182,7 @@ AS
     IF UPDATE(ReleaseDate)
     BEGIN
         PRINT 'Update Trigger Called';
-        RAISERROR('Release date cannot be changed', 16, 1);
+        THROW 50000, 'Release date cannot be changed', 1;
     END;
 GO
 
