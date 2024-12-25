@@ -208,6 +208,15 @@ AS
     END;
 GO
 
+CREATE FUNCTION GameWithIncreasedPriceV2()
+    RETURNS TABLE
+AS
+    RETURN (
+        SELECT GameName, ReleaseDate, Description, dbo.IncreasePrice(Price) AS Price
+        FROM Game
+    );
+GO
+
 CREATE PROCEDURE GetCursorGameWithIncreasedPriceTable
 @Result CURSOR VARYING OUTPUT
 AS
