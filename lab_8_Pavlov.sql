@@ -67,3 +67,177 @@ VALUES
     ('Super Smash Bros. Ultimate', '2018-10-26', 'Super Smash Bros. Ultimate is an action-adventure game', 59.99, 2),
     ('Super Mario 3D World', '2013-11-21', 'Super Mario 3D World is an action-adventure game', 59.99, 2);
 GO
+
+-- процедура, возвращающая курсор
+
+CREATE PROCEDURE GetCursorGame
+    @Result CURSOR VARYING OUTPUT
+AS
+BEGIN
+    SET @Result = CURSOR SCROLL FOR
+        SELECT GameName, ReleaseDate, Description, Price
+        FROM Game;
+    OPEN @Result;
+END;
+GO
+
+BEGIN
+    DECLARE @Cursor CURSOR;
+    EXEC GetCursorGame @Result = @Cursor OUTPUT;
+
+    DECLARE @GameName NVARCHAR(255);
+    DECLARE @ReleaseDate DATE;
+    DECLARE @Description NVARCHAR(1023);
+    DECLARE @Price DECIMAL(9, 2);
+
+    FETCH NEXT FROM @Cursor INTO @GameName, @ReleaseDate, @Description, @Price;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        PRINT N'Название игры: ' + @GameName + N', дата релиза: ' + CAST(@ReleaseDate AS NVARCHAR) +
+            N', описание: ' + @Description + N', цена: ' + CAST(@Price AS NVARCHAR);
+        FETCH NEXT FROM @Cursor INTO @GameName, @ReleaseDate, @Description, @Price;
+    END;
+
+    CLOSE @Cursor;
+    DEALLOCATE @Cursor;
+END;
+GO
+
+-- с формированием столбца пользовательской функцией
+
+CREATE FUNCTION IncreasePrice (@Price DECIMAL(9, 2))
+    RETURNS DECIMAL(9, 2)
+AS
+BEGIN
+    RETURN @Price * 1.1;
+END;
+GO
+
+CREATE PROCEDURE GetCursorGameWithIncreasedPrice
+    @Result CURSOR VARYING OUTPUT
+AS
+BEGIN
+    SET @Result = CURSOR SCROLL FOR
+        SELECT GameName, ReleaseDate, Description, dbo.IncreasePrice(Price) AS Price
+        FROM Game;
+    OPEN @Result;
+END;
+GO
+
+BEGIN
+    DECLARE @Cursor CURSOR;
+    EXEC GetCursorGameWithIncreasedPrice @Result = @Cursor OUTPUT;
+
+    DECLARE @GameName NVARCHAR(255);
+    DECLARE @ReleaseDate DATE;
+    DECLARE @Description NVARCHAR(1023);
+    DECLARE @Price DECIMAL(9, 2);
+
+    FETCH NEXT FROM @Cursor INTO @GameName, @ReleaseDate, @Description, @Price;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        PRINT N'Название игры: ' + @GameName + N', дата релиза: ' + CAST(@ReleaseDate AS NVARCHAR) +
+            N', описание: ' + @Description + N', цена: ' + CAST(@Price AS NVARCHAR);
+        FETCH NEXT FROM @Cursor INTO @GameName, @ReleaseDate, @Description, @Price;
+    END;
+
+    CLOSE @Cursor;
+    DEALLOCATE @Cursor;
+END;
+GO
+
+-- прокрутка курсора
+
+CREATE FUNCTION IsExpensive (@Price DECIMAL(9, 2))
+    RETURNS BIT
+AS
+BEGIN
+    DECLARE @Result BIT;
+    IF @Price > 100
+        SET @Result = 1;
+    ELSE
+        SET @Result = 0;
+    RETURN @Result;
+END;
+GO
+
+CREATE PROCEDURE GetExpensiveGames
+AS
+BEGIN
+    DECLARE @Cursor CURSOR;
+    EXEC GetCursorGame @Result = @Cursor OUTPUT;
+
+    DECLARE @GameName NVARCHAR(255);
+    DECLARE @ReleaseDate DATE;
+    DECLARE @Description NVARCHAR(1023);
+    DECLARE @Price DECIMAL(9, 2);
+
+    -- сама прокрутка
+    FETCH FIRST FROM @Cursor INTO @GameName, @ReleaseDate, @Description, @Price;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        IF dbo.IsExpensive(@Price) = 1
+            PRINT N'Название игры: ' + @GameName + N', дата релиза: ' + CAST(@ReleaseDate AS NVARCHAR) +
+                N', описание: ' + @Description + N', цена: ' + CAST(@Price AS NVARCHAR);
+
+        FETCH NEXT FROM @Cursor INTO @GameName, @ReleaseDate, @Description, @Price;
+    END;
+
+    CLOSE @Cursor;
+    DEALLOCATE @Cursor;
+END;
+GO
+
+EXEC GetExpensiveGames;
+GO
+
+-- с табличной функцией
+
+CREATE FUNCTION GameWithIncreasedPrice()
+    RETURNS @ResultTable TABLE (GameName NVARCHAR(255), ReleaseDate DATE,
+                                Description NVARCHAR(255), Price DECIMAL(9, 2))
+AS
+    BEGIN
+        INSERT INTO @ResultTable (GameName, ReleaseDate, Description, Price)
+            SELECT GameName, ReleaseDate, Description, dbo.IncreasePrice(Price) AS Price
+            FROM Game;
+        RETURN;
+    END;
+GO
+
+CREATE PROCEDURE GetCursorGameWithIncreasedPriceTable
+@Result CURSOR VARYING OUTPUT
+AS
+BEGIN
+    SET @Result = CURSOR SCROLL FOR
+        SELECT * FROM dbo.GameWithIncreasedPrice();
+    OPEN @Result;
+END;
+GO
+
+BEGIN
+    DECLARE @Cursor CURSOR;
+    EXEC GetCursorGameWithIncreasedPriceTable @Result = @Cursor OUTPUT;
+
+    DECLARE @GameName NVARCHAR(255);
+    DECLARE @ReleaseDate DATE;
+    DECLARE @Description NVARCHAR(1023);
+    DECLARE @Price DECIMAL(9, 2);
+
+    FETCH NEXT FROM @Cursor INTO @GameName, @ReleaseDate, @Description, @Price;
+
+    WHILE @@FETCH_STATUS = 0
+        BEGIN
+            PRINT N'Название игры: ' + @GameName + N', дата релиза: ' + CAST(@ReleaseDate AS NVARCHAR) +
+                  N', описание: ' + @Description + N', цена: ' + CAST(@Price AS NVARCHAR);
+            FETCH NEXT FROM @Cursor INTO @GameName, @ReleaseDate, @Description, @Price;
+        END;
+
+    CLOSE @Cursor;
+    DEALLOCATE @Cursor;
+END;
+GO
+
