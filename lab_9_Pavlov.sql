@@ -93,22 +93,31 @@ GO
 -- UPDATE
 CREATE TRIGGER UpdateGame
     ON Game
-    FOR UPDATE
+    INSTEAD OF UPDATE
 AS
-    IF UPDATE(Price)
     BEGIN
-        PRINT 'Update Trigger Called';
-        SELECT deleted.Price, inserted.Price FROM inserted
-            JOIN deleted ON inserted.GameID = deleted.GameID;
-    END
+        IF UPDATE(GameID)
+            THROW 50000, 'Cannot update GameID', 1
+
+        UPDATE Game
+        SET
+            GameName = i.GameName,
+            ReleaseDate = i.ReleaseDate,
+            Description = i.Description,
+            Price = i.Price
+        FROM inserted AS i
+        WHERE
+            Game.GameID = i.GameID;
+    END;
 GO
 
 UPDATE Game
 SET
-    Price = 299.99
+    Price = 299.99,
+    Description = 'Price recently changed'
 WHERE
-    GameName = 'The Legend of Zelda: Breath of the Wild'
-    AND ReleaseDate = '2017-03-03';
+    GameName = 'Super Mario 64'
+    OR ReleaseDate = '2017-10-27';
 GO
 
 -- DELETE
@@ -117,6 +126,9 @@ CREATE TRIGGER DeleteGame
     FOR DELETE
 AS
     DELETE FROM App WHERE AppID IN (SELECT AppID FROM deleted);
+GO
+
+DELETE FROM Game WHERE GameID = '16813450-7322-4983-8134-507322298374';
 GO
 
 -- View
