@@ -34,13 +34,16 @@ CREATE TABLE App (
     GameID UNIQUEIDENTIFIER,
 )
 
+CREATE UNIQUE NONCLUSTERED INDEX UQ_App_GameID_NotNull
+    ON App(GameID) WHERE GameID IS NOT NULL;
+
 CREATE TABLE Game (
     GameID UNIQUEIDENTIFIER PRIMARY KEY NOT NULL,
     GameName NVARCHAR(255) NOT NULL,
     ReleaseDate DATE NOT NULL,
     Description NVARCHAR(1023),
     Price DECIMAL(9, 2) NOT NULL,
-    AppID UNIQUEIDENTIFIER NOT NULL,
+    AppID UNIQUEIDENTIFIER UNIQUE NOT NULL,
     CONSTRAINT AK_GameName_ReleaseDate UNIQUE (GameName, ReleaseDate),
     CONSTRAINT CHK_Game_Price CHECK (Price >= 0),
     FOREIGN KEY (AppID) REFERENCES App(AppID) ON DELETE NO ACTION,
@@ -190,6 +193,9 @@ CREATE TRIGGER UpdateGameApp
     INSTEAD OF UPDATE
 AS
     BEGIN
+        IF UPDATE(GameID) OR UPDATE(AppID)
+            THROW 50000, 'GameID or AppID should not be changed', 1
+
         UPDATE App
         SET
             DownloadURL = i.DownloadURL,
