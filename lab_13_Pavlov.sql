@@ -48,6 +48,13 @@ GO
 USE lab13_1_db;
 GO
 
+EXEC sp_helpserver;
+GO
+
+EXEC sp_serveroption
+     @@SERVERNAME, 'lazy schema validation', 'true';
+GO
+
 CREATE TABLE Game (
     GameID INT PRIMARY KEY NOT NULL CHECK (GameID <= 100),
     GameName NVARCHAR(255) NOT NULL,
