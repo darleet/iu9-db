@@ -83,7 +83,7 @@ CREATE TRIGGER PlayerViewUpdateTrigger ON PlayerView
     AS
         BEGIN
             IF UPDATE(PlayerID)
-                THROW 50000, 'PlayerID should not be changed', 1;
+                THROW 50001, 'PlayerID should not be changed', 1;
 
             UPDATE lab13_1_db.dbo.Player
             SET PublicName = i.PublicName, Description = i.Description, AvatarURL = i.AvatarURL

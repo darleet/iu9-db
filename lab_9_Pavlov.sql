@@ -100,7 +100,7 @@ CREATE TRIGGER UpdateGame
 AS
     BEGIN
         IF UPDATE(GameID)
-            THROW 50000, 'Cannot update GameID', 1
+            THROW 50001, 'Cannot update GameID', 1
 
         UPDATE Game
         SET
@@ -194,7 +194,7 @@ CREATE TRIGGER UpdateGameApp
 AS
     BEGIN
         IF UPDATE(GameID) OR UPDATE(AppID)
-            THROW 50000, 'GameID or AppID should not be changed', 1
+            THROW 50001, 'GameID or AppID should not be changed', 1
 
         UPDATE App
         SET
