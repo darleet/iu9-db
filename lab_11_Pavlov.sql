@@ -272,19 +272,24 @@ SELECT * FROM Game
     WHERE Price BETWEEN 100 AND 200;
 GO
 
-SELECT P.PublicName, G.GameName FROM Player AS P
+SELECT P.PublicName AS PlayerName, G.GameName FROM Player AS P
     LEFT JOIN GamePlayerInt ON P.PlayerID = GamePlayerInt.PlayerID
     LEFT JOIN Game AS G ON G.GameID = GamePlayerInt.GameID;
 GO
 
-SELECT P.PublicName, G.GameName FROM Player AS P
+SELECT P.PublicName AS PlayerName, G.GameName FROM Player AS P
     RIGHT JOIN GamePlayerInt ON P.PlayerID = GamePlayerInt.PlayerID
     LEFT JOIN Game AS G ON G.GameID = GamePlayerInt.GameID;
 GO
 
-SELECT P.PublicName, G.GameName FROM Player AS P
+SELECT P.PublicName AS PlayerName, G.GameName FROM Player AS P
     RIGHT JOIN GamePlayerInt ON P.PlayerID = GamePlayerInt.PlayerID
     RIGHT JOIN Game AS G ON G.GameID = GamePlayerInt.GameID;
+GO
+
+SELECT P.PublicName AS PlayerName, G.GameName FROM Player AS P
+    FULL OUTER JOIN GamePlayerInt ON P.PlayerID = GamePlayerInt.PlayerID
+    FULL OUTER JOIN Game AS G ON G.GameID = GamePlayerInt.GameID;
 GO
 
 -- Aggregation
