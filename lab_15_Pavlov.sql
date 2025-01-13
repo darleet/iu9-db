@@ -55,20 +55,17 @@ GO
 
 -- INSERT
 
-DROP TRIGGER IF EXISTS GameInsertTrigger;
+DROP TRIGGER IF EXISTS GameInsertUpdateTrigger;
 GO
 
-CREATE TRIGGER GameInsertTrigger ON lab13_2_db.dbo.Game
-    INSTEAD OF INSERT
+CREATE TRIGGER GameInsertUpdateTrigger ON lab13_2_db.dbo.Game
+    FOR INSERT, UPDATE
     AS
         BEGIN
             IF EXISTS(SELECT DeveloperID FROM inserted AS i
                       WHERE i.DeveloperID NOT IN
                             (SELECT DeveloperID FROM lab13_1_db.dbo.Developer))
                 THROW 50001, 'DeveloperID does not exist in lab13_1_db.dbo.Developer', 1;
-
-            INSERT INTO lab13_2_db.dbo.Game
-            SELECT * FROM inserted;
         END;
 GO
 
@@ -97,27 +94,6 @@ SELECT * FROM lab13_2_db.dbo.Game;
 -- UPDATE
 
 DROP TRIGGER IF EXISTS GameUpdateTrigger;
-GO
-
-CREATE TRIGGER GameUpdateTrigger ON lab13_2_db.dbo.Game
-    INSTEAD OF UPDATE
-    AS
-        BEGIN
-            IF EXISTS(SELECT DeveloperID FROM inserted AS i
-                      WHERE i.DeveloperID NOT IN
-                            (SELECT DeveloperID FROM lab13_1_db.dbo.Developer))
-                THROW 50001, 'DeveloperID does not exist in lab13_1_db.dbo.Developer', 1;
-
-            UPDATE lab13_2_db.dbo.Game
-            SET GameID = i.GameID,
-                GameName = i.GameName,
-                ReleaseDate = i.ReleaseDate,
-                Description = i.Description,
-                Price = i.Price,
-                DeveloperID = i.DeveloperID
-            FROM inserted AS i
-            WHERE lab13_2_db.dbo.Game.GameID = i.GameID;
-        END;
 GO
 
 UPDATE lab13_2_db.dbo.Game
@@ -154,4 +130,29 @@ SELECT * FROM GameDeveloperView;
 SELECT * FROM lab13_1_db.dbo.Developer;
 SELECT * FROM lab13_2_db.dbo.Game;
 GO
+
+-- Developer
+-- DELETE
+
+USE lab13_1_db;
+GO
+
+DROP TRIGGER IF EXISTS DeveloperDeleteUpdateTrigger;
+GO
+
+CREATE TRIGGER DeveloperDeleteUpdateTrigger ON lab13_1_db.dbo.Developer
+    FOR DELETE, UPDATE
+    AS
+        IF EXISTS(SELECT 1 FROM lab13_2_db.dbo.Game
+                           WHERE DeveloperID IN (SELECT DeveloperID FROM deleted))
+            THROW 50001, 'Cannot delete Developer with Games', 1;
+GO
+
+
+-- DELETE FROM lab13_1_db.dbo.Developer
+-- WHERE DeveloperID = 1;
+
+-- UPDATE lab13_1_db.dbo.Developer
+-- SET DeveloperID = 4
+-- WHERE DeveloperID = 1;
 
