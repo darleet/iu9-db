@@ -49,11 +49,7 @@ CREATE TABLE App (
     AppID INT PRIMARY KEY NOT NULL,
     DownloadURL NVARCHAR(255) NOT NULL,
     SizeInBytes BIGINT NOT NULL,
-    GameID INT,
 )
-
-CREATE UNIQUE NONCLUSTERED INDEX UQ_App_GameID_NotNull
-    ON App(GameID) WHERE GameID IS NOT NULL;
 
 INSERT INTO App
     (AppID, DownloadURL, SizeInBytes)
@@ -83,10 +79,6 @@ CREATE TABLE Game (
     FOREIGN KEY (AppID) REFERENCES App(AppID) ON DELETE NO ACTION,
     INDEX IX_Game_GameName (GameName),
 );
-GO
-
-ALTER TABLE App
-    ADD FOREIGN KEY (GameID) REFERENCES Game(GameID) ON DELETE SET NULL;
 GO
 
 INSERT INTO Game
@@ -151,7 +143,7 @@ CREATE VIEW GameAppView AS
 SELECT G.GameID, G.GameName, G.ReleaseDate, G.Description, G.Price, G.DeveloperID,
        A.AppID, A.DownloadURL, A.SizeInBytes
 FROM Game AS G
-         JOIN App AS A ON G.GameID = A.GameID
+         JOIN App AS A ON G.AppID = A.AppID
 GO
 
 -- INSERT
@@ -248,9 +240,9 @@ GO
 INSERT INTO GamePlayerInt
     (GameID, PlayerID)
 VALUES
-    ((SELECT GameID FROM Game WHERE GameName = 'Street Fighter V'), (SELECT PlayerID FROM Player WHERE PublicName = 'Player 1')),
-    ((SELECT GameID FROM Game WHERE GameName = 'The Legend of Zelda: Breath of the Wild'), (SELECT PlayerID FROM Player WHERE PublicName = 'Player 1')),
-    ((SELECT GameID FROM Game WHERE GameName = 'The Legend of Zelda: Breath of the Wild'), (SELECT PlayerID FROM Player WHERE PublicName = 'Player 3'));
+    (6, 1),
+    (1, 1),
+    (1, 3);
 GO
 
 SELECT P.PublicName, COUNT(*) AS GameCount FROM Player AS P
@@ -274,7 +266,8 @@ GO
 
 SELECT P.PublicName AS PlayerName, G.GameName FROM Player AS P
     LEFT JOIN GamePlayerInt ON P.PlayerID = GamePlayerInt.PlayerID
-    LEFT JOIN Game AS G ON G.GameID = GamePlayerInt.GameID;
+    LEFT JOIN Game AS G ON G.GameID = GamePlayerInt.GameID
+    WHERE G.GameID IS NOT NULL;
 GO
 
 SELECT P.PublicName AS PlayerName, G.GameName FROM Player AS P
@@ -282,9 +275,18 @@ SELECT P.PublicName AS PlayerName, G.GameName FROM Player AS P
     LEFT JOIN Game AS G ON G.GameID = GamePlayerInt.GameID;
 GO
 
-SELECT P.PublicName AS PlayerName, G.GameName FROM Player AS P
+-- Игры, в которые кто-то играет
+SELECT G.GameName FROM Player AS P
     RIGHT JOIN GamePlayerInt ON P.PlayerID = GamePlayerInt.PlayerID
-    RIGHT JOIN Game AS G ON G.GameID = GamePlayerInt.GameID;
+    RIGHT JOIN Game AS G ON G.GameID = GamePlayerInt.GameID
+    WHERE P.PlayerID IS NOT NULL;
+GO
+
+-- Игры, в которые играет пользователь с ID 1
+SELECT G.GameName FROM Player AS P
+    RIGHT JOIN GamePlayerInt ON P.PlayerID = GamePlayerInt.PlayerID
+    RIGHT JOIN Game AS G ON G.GameID = GamePlayerInt.GameID
+    WHERE P.PlayerID = 1;
 GO
 
 SELECT P.PublicName AS PlayerName, G.GameName FROM Player AS P
@@ -294,27 +296,29 @@ GO
 
 -- Aggregation
 
-SELECT D.DeveloperName, SUM(G.Price) FROM Game AS G
+SELECT D.DeveloperName, SUM(G.Price) AS GamePriceSum FROM Game AS G
     INNER JOIN Developer AS D ON G.DeveloperID = D.DeveloperID
     GROUP BY D.DeveloperName;
 GO
 
-SELECT D.DeveloperName, AVG(G.Price) FROM Game AS G
+SELECT D.DeveloperName, AVG(G.Price) AS GamePriceAvg FROM Game AS G
+    INNER JOIN Developer D on G.DeveloperID = D.DeveloperID
+    GROUP BY D.DeveloperName
+    HAVING AVG(G.Price) > 100;
+GO
+
+SELECT D.DeveloperName, MIN(G.Price) AS GamePriceMin FROM Game AS G
+    INNER JOIN Developer D on G.DeveloperID = D.DeveloperID
+    GROUP BY D.DeveloperName
+    HAVING MIN(G.Price) > 0;
+GO
+
+SELECT D.DeveloperName, MAX(G.Price) AS GamePriceMax FROM Game AS G
     INNER JOIN Developer D on G.DeveloperID = D.DeveloperID
     GROUP BY D.DeveloperName;
 GO
 
-SELECT D.DeveloperName, MIN(G.Price) FROM Game AS G
-    INNER JOIN Developer D on G.DeveloperID = D.DeveloperID
-    GROUP BY D.DeveloperName;
-GO
-
-SELECT D.DeveloperName, MAX(G.Price) FROM Game AS G
-    INNER JOIN Developer D on G.DeveloperID = D.DeveloperID
-    GROUP BY D.DeveloperName;
-GO
-
-SELECT D.DeveloperName, COUNT(*) FROM Game AS G
+SELECT D.DeveloperName, COUNT(*) AS GamePriceCount FROM Game AS G
     INNER JOIN Developer D on G.DeveloperID = D.DeveloperID
     GROUP BY D.DeveloperName;
 GO
